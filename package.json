@@ -4,9 +4,12 @@
   "description": "GPG encryption and decryption in node.js by way of the gpg command-line tool",
   "version": "0.7.0",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/mykeels/node-gpg.git"
+    "url": "git://github.com/ScalableOrg/node-gpg.git"
   },
   "scripts": {
     "pretest": "eslint .",
@@ -58,9 +61,9 @@
     "*.js": "eslint --cache --fix"
   },
   "bugs": {
-    "url": "https://github.com/mykeels/node-gpg/issues"
+    "url": "https://github.com/ScalableOrg/node-gpg/issues"
   },
-  "homepage": "https://github.com/mykeels/node-gpg#readme",
+  "homepage": "https://github.com/ScalableOrg/node-gpg#readme",
   "directories": {
     "example": "examples",
     "test": "test"
