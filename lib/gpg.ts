@@ -22,6 +22,13 @@ type StreamingFn = (
   args: string[],
   executable: string
 ) => Promise<fs.WriteStream>;
+interface IGpgKey {
+  created_at: string | Date;
+  expires_at: string | Date;
+  id: string;
+  username: string;
+  email: string;
+}
 
 export class GpgService {
   constructor(
@@ -291,6 +298,47 @@ export class GpgService {
         `"${name} <${email}>"`,
       ])
     );
+  }
+
+  /**
+   * Lists keys!
+   *
+   * @api public
+   */
+  listKeys(args: string[] = []): Promise<IGpgKey[]> {
+    return this.call(
+      "",
+      args.concat(["--no-tty", "--logger-fd", "1", "--list-keys"])
+    ).then((buffer) => {
+      const message = buffer.toString();
+      const [ourFocus] = message
+        .split(/-----+/)
+        .map((l) => l.trim())
+        .slice(1);
+      const lines = ["", ...ourFocus.split("\n").map((l) => l.trim())];
+      const keys = lines.reduce((keys, line) => {
+        if (line === "") {
+          return keys.concat({});
+        }
+        const lastKey = keys[keys.length - 1] as Partial<IGpgKey>;
+        if (line.startsWith("pub")) {
+          const [created_at, expires_at] = line
+            .match(/(\d{4}-\d{2}-\d{2}) .+ (\d{4}-\d{2}-\d{2})/)
+            .slice(1);
+          lastKey.created_at = created_at;
+          lastKey.expires_at = expires_at;
+        } else if (line.startsWith("uid")) {
+          const [ourFocus] = line.split("]").slice(1);
+          const [username, email] = ourFocus.match(/(.+) <(.+)>/).slice(1);
+          lastKey.username = username.trim().replace('"', "");
+          lastKey.email = email;
+        } else if (!line.startsWith("sub")) {
+          lastKey.id = line;
+        }
+        return keys;
+      }, []);
+      return keys;
+    });
   }
 }
 
