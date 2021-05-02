@@ -17,7 +17,8 @@
     "test:watch": "npm test -- -w",
     "watch:tsc": "tsc --watch -p ./tsconfig.json",
     "build:tsc": "tsc -p ./tsconfig.json",
-    "lint:check": "eslint . --ext=ts"
+    "lint:check": "eslint . --ext=ts",
+    "script": "ts-node -r tsconfig-paths/register --files --"
   },
   "keywords": [
     "gpg",
@@ -52,6 +53,8 @@
     "mocha": "^8.0.1",
     "sinon": "^9.0.3",
     "sinon-chai": "^3.5.0",
+    "ts-node": "^9.1.1",
+    "tsconfig-paths": "^3.9.0",
     "typescript": "^4.2.4"
   },
   "husky": {

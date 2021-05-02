@@ -5,7 +5,7 @@
     "lib": ["es2017", "esnext.asynciterable", "dom"],
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./lib",
+    "rootDir": "./",
     "strict": false,
     "noImplicitAny": false,
     "declaration": true,
@@ -20,5 +20,6 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": false
   },
+  "exclude": ["node_modules"],
   "include": ["lib/**/*"]
 }
