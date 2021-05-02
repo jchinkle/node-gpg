@@ -15,7 +15,7 @@ const spawnIt = async (
   return new Promise((resolve, reject) => {
     const gpg = spawn(executable, globalArgs.concat(args || []));
     gpg.on("error", reject);
-    return gpg;
+    resolve(gpg);
   });
 };
 
@@ -40,39 +40,40 @@ export const spawnGPG = async (
   input: string,
   args: string[],
   executable = "gpg"
-): Promise<Buffer> => {
+): Promise<void | Buffer> => {
   const buffers = [];
   let buffersLength = 0;
   let error = "";
-  const gpg = await spawnIt(args, executable);
-  return new Promise((resolve, reject) => {
-    gpg.stdout.on("data", function (buf: Buffer) {
-      buffers.push(buf);
-      buffersLength += buf.length;
+  return spawnIt(args, executable).then((gpg) => {
+    return new Promise((resolve, reject) => {
+      gpg.stdout.on("data", function (buf: Buffer) {
+        buffers.push(buf);
+        buffersLength += buf.length;
+      });
+
+      gpg.stderr.on("data", function (buf: Buffer) {
+        error += buf.toString("utf8");
+      });
+
+      gpg.on("close", function (code) {
+        const message = Buffer.concat(buffers, buffersLength);
+        if (code !== 0) {
+          // If error is empty, we probably redirected stderr to stdout (for verifySignature, import, etc)
+          reject(error || message.toString("utf8"));
+        }
+
+        if (error !== "") {
+          reject({
+            error,
+            message: message.toString("utf8"),
+          });
+        } else {
+          resolve(message);
+        }
+      });
+
+      gpg.stdin.end(input);
     });
-
-    gpg.stderr.on("data", function (buf: Buffer) {
-      error += buf.toString("utf8");
-    });
-
-    gpg.on("close", function (code) {
-      const message = Buffer.concat(buffers, buffersLength);
-      if (code !== 0) {
-        // If error is empty, we probably redirected stderr to stdout (for verifySignature, import, etc)
-        return reject(new Error(error || message.toString("utf8")));
-      }
-
-      if (error !== "") {
-        reject({
-          error,
-          message,
-        });
-      } else {
-        resolve(message);
-      }
-    });
-
-    gpg.stdin.end(input);
   });
 };
 

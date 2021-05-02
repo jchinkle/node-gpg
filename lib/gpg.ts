@@ -16,7 +16,7 @@ type SpawnGpgFn = (
   input: string,
   args: string[],
   executable: string
-) => Promise<Buffer>;
+) => Promise<void | Buffer>;
 type StreamingFn = (
   options: IStreamingOptions,
   args: string[],
@@ -32,7 +32,7 @@ export class GpgService {
       reader?: {
         readFile: (filePath: string) => Promise<Buffer>;
         readFileString: (filePath: string) => Promise<string>;
-      }
+      };
     }
   ) {}
 
@@ -40,7 +40,11 @@ export class GpgService {
    * Raw call to gpg.
    */
   call(input: string, args: string[]): Promise<Buffer> {
-    return this.options.spawnGPG(input, args, this.options.executable);
+    return this.options.spawnGPG(
+      input,
+      args,
+      this.options.executable
+    ) as Promise<Buffer>;
   }
 
   /**
@@ -72,7 +76,9 @@ export class GpgService {
    * @api public
    */
   encryptFile(file: string): Promise<Buffer> {
-    return this.options.reader.readFile(file).then((content) => this.encrypt(content));
+    return this.options.reader
+      .readFile(file)
+      .then((content) => this.encrypt(content));
   }
 
   /**
@@ -130,7 +136,9 @@ export class GpgService {
    * @api public
    */
   decryptFile(file: string): Promise<Buffer> {
-    return this.options.reader.readFile(file).then((content) => this.decrypt(content));
+    return this.options.reader
+      .readFile(file)
+      .then((content) => this.decrypt(content));
   }
 
   /**
@@ -248,8 +256,15 @@ export class GpgService {
   removeKey(keyID: string, args: string[] = []): Promise<Buffer> {
     // Set logger fd, verify otherwise outputs to stderr for whatever reason
     return this.call(
-      keyID,
-      args.concat(["--logger-fd", "1", "--delete-secret-and-public-key"])
+      "",
+      args.concat([
+        "--no-tty",
+        "--yes",
+        "--logger-fd",
+        "1",
+        "--delete-secret-and-public-key",
+        keyID
+      ])
     );
   }
 }
@@ -259,7 +274,7 @@ export const gpg = new GpgService({
   streaming,
   reader: {
     readFile: fs.promises.readFile,
-    readFileString: filePath => fs.promises.readFile(filePath, "utf8")
-  }
+    readFileString: (filePath) => fs.promises.readFile(filePath, "utf8"),
+  },
 });
 export default gpg;
