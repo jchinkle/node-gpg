@@ -263,7 +263,32 @@ export class GpgService {
         "--logger-fd",
         "1",
         "--delete-secret-and-public-key",
-        keyID
+        keyID,
+      ])
+    );
+  }
+
+  /**
+   * Creates a key!
+   *
+   * @api public
+   */
+  generateKey(
+    name: string,
+    email: string,
+    passphrase: string,
+    args: string[] = []
+  ): Promise<Buffer> {
+    return this.call(
+      "",
+      args.concat([
+        "--no-tty",
+        "--logger-fd",
+        "1",
+        "--passphrase",
+        passphrase,
+        "--quick-generate-key",
+        `"${name} <${email}>"`,
       ])
     );
   }
