@@ -11,6 +11,8 @@ import fs from "fs";
 import { Stream } from "node:stream";
 import { IStreamingOptions, spawnGPG, streaming } from "./spawnGPG";
 const keyRegex = /^gpg: key (.*?):/;
+// eslint-disable-next-line no-control-regex
+const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/gi;
 
 type SpawnGpgFn = (
   input: string,
@@ -27,7 +29,6 @@ interface IGpgKey {
   expires_at: string | Date;
   id: string;
   username: string;
-  email: string;
 }
 
 export class GpgService {
@@ -281,8 +282,7 @@ export class GpgService {
    * @api public
    */
   generateKey(
-    name: string,
-    email: string,
+    username: string,
     passphrase: string,
     args: string[] = []
   ): Promise<Buffer> {
@@ -295,9 +295,21 @@ export class GpgService {
         "--passphrase",
         passphrase,
         "--quick-generate-key",
-        `"${name} <${email}>"`,
+        username,
       ])
     );
+  }
+
+  /**
+   * Exports a public key!
+   *
+   * @api public
+   */
+  exportPublicKey(username: string, args: string[] = []): Promise<string> {
+    return this.call(
+      "",
+      args.concat(["--logger-fd", "1", "--export", "-a", username])
+    ).then((buffer) => buffer?.toString());
   }
 
   /**
@@ -329,9 +341,9 @@ export class GpgService {
           lastKey.expires_at = expires_at;
         } else if (line.startsWith("uid")) {
           const [ourFocus] = line.split("]").slice(1);
-          const [username, email] = ourFocus.match(/(.+) <(.+)>/).slice(1);
-          lastKey.username = username.trim().replace('"', "");
-          lastKey.email = email;
+          const [name] = ourFocus.match(/(.+ <(.+)>)/)?.slice(1) || [];
+          const [email] = ourFocus.match(emailRegex);
+          lastKey.username = name?.trim().replace('"', "") || email;
         } else if (!line.startsWith("sub")) {
           lastKey.id = line;
         }

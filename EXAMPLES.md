@@ -22,6 +22,26 @@ import { gpg } from "@mykeels/gpg";
 })();
 ```
 
+## Export Public Key
+
+```js
+import { gpg } from "@mykeels/gpg";
+
+(async () => {
+  const keys = await gpg.exportPublicKey("john.doe@mailinator.com");
+})();
+```
+
+or
+
+```js
+import { gpg } from "@mykeels/gpg";
+
+(async () => {
+  const keys = await gpg.exportPublicKey("John Doe <john.doe@mailinator.com>");
+})();
+```
+
 ## Import Key from File
 
 ```js
