@@ -1,11 +1,23 @@
 {
   "author": "Nicholas Penree <drudge@conceited.net> (http://penr.ee)",
-  "name": "gpg",
+  "name": "@mykeels/gpg",
   "description": "GPG encryption and decryption in node.js by way of the gpg command-line tool",
-  "version": "0.6.0",
+  "version": "0.7.0",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/drudge/node-gpg.git"
+    "url": "git://github.com/ScalableOrg/node-gpg.git"
+  },
+  "scripts": {
+    "pretest": "eslint .",
+    "test": "mocha test/*.test.js --require @babel/register",
+    "test:watch": "npm test -- -w",
+    "watch:tsc": "tsc --watch -p ./tsconfig.json",
+    "build:tsc": "tsc -p ./tsconfig.json",
+    "lint:check": "eslint . --ext=ts"
   },
   "keywords": [
     "gpg",
@@ -14,23 +26,44 @@
     "pgp",
     "gnupg"
   ],
-  "main": "./lib/gpg",
+  "main": "./dist/index",
+  "typings": "./dist/index.d.ts",
   "engines": {
     "node": ">= 0.10.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "eslint": "^2.10.2",
-    "mocha": "2.x"
+    "@babel/core": "^7.11.6",
+    "@babel/register": "^7.11.5",
+    "@types/node": "^15.0.1",
+    "@babel/plugin-transform-runtime": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
+    "babel-plugin-source-map-support": "^2.1.3",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^7.9.0",
+    "husky": "^4.3.0",
+    "lint-staged": "^10.4.0",
+    "mocha": "^8.0.1",
+    "sinon": "^9.0.3",
+    "sinon-chai": "^3.5.0",
+    "typescript": "^4.2.4"
   },
-  "scripts": {
-    "pretest": "eslint .",
-    "test": "mocha"
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm test -- --watchAll=false"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix"
   },
   "bugs": {
-    "url": "https://github.com/drudge/node-gpg/issues"
+    "url": "https://github.com/ScalableOrg/node-gpg/issues"
   },
-  "homepage": "https://github.com/drudge/node-gpg#readme",
+  "homepage": "https://github.com/ScalableOrg/node-gpg#readme",
   "directories": {
     "example": "examples",
     "test": "test"
