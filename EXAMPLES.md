@@ -1,3 +1,27 @@
+## List Keys
+
+```js
+import { gpg } from "@mykeels/gpg";
+
+(async () => {
+  const keys = await gpg.listKeys();
+})();
+```
+
+## Generate Key
+
+```js
+import { gpg } from "@mykeels/gpg";
+
+(async () => {
+  const keys = await gpg.generateKey(
+    "John Doe",
+    "john.doe@mailinator.com",
+    "sample-passphrase"
+  );
+})();
+```
+
 ## Import Key from File
 
 ```js
