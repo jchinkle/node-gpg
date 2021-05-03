@@ -8,6 +8,8 @@
  * Module dependencies.
  */
 import fs from "fs";
+import { homedir } from "os";
+import path from "path";
 import { Stream } from "node:stream";
 import { IStreamingOptions, spawnGPG, streaming } from "./spawnGPG";
 const keyRegex = /^gpg: key (.*?):/;
@@ -29,6 +31,7 @@ interface IGpgKey {
   expires_at: string | Date;
   id: string;
   username: string;
+  keygrip: string;
 }
 
 export class GpgService {
@@ -313,6 +316,28 @@ export class GpgService {
   }
 
   /**
+   * Exports a private key!
+   *
+   * @api public
+   */
+  exportPrivateKey(keygrip: string): Promise<Buffer> {
+    return this.options.reader.readFile(
+      path.join(homedir(), `/.gnupg/private-keys-v1.d/${keygrip}.key`)
+    );
+  }
+
+  /**
+   * Exports a private key as base64 string!
+   *
+   * @api public
+   */
+  exportPrivateKeyAsBase64(keygrip: string): Promise<string> {
+    return this.exportPrivateKey(keygrip).then((buffer) =>
+      buffer?.toString("base64")
+    );
+  }
+
+  /**
    * Lists keys!
    *
    * @api public
@@ -320,7 +345,13 @@ export class GpgService {
   listKeys(args: string[] = []): Promise<IGpgKey[]> {
     return this.call(
       "",
-      args.concat(["--no-tty", "--logger-fd", "1", "--list-keys"])
+      args.concat([
+        "--no-tty",
+        "--logger-fd",
+        "1",
+        "--list-keys",
+        "--with-keygrip",
+      ])
     ).then((buffer) => {
       const message = buffer.toString();
       const [ourFocus] = message
@@ -344,6 +375,9 @@ export class GpgService {
           const [name] = ourFocus.match(/(.+ <(.+)>)/)?.slice(1) || [];
           const [email] = ourFocus.match(emailRegex);
           lastKey.username = name?.trim().replace('"', "") || email;
+        } else if (line.trim().startsWith("Keygrip")) {
+          const [keygrip] = line.split(" = ").slice(1);
+          lastKey.keygrip = keygrip;
         } else if (!line.startsWith("sub")) {
           lastKey.id = line;
         }

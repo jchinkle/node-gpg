@@ -42,6 +42,30 @@ import { gpg } from "@mykeels/gpg";
 })();
 ```
 
+## Export Private Key
+
+```js
+import { gpg } from "@mykeels/gpg";
+
+(async () => {
+  const keys = await gpg.listKeys();
+  const keyGridId = keys.find(key => key.email === "john.doe@mailinator.com");
+  const buffer = await gpg.exportPrivateKey(keyGridId); // this will be encrypted, if there's a passphrase
+})();
+```
+
+## Export Private Key as Base64
+
+```js
+import { gpg } from "@mykeels/gpg";
+
+(async () => {
+  const keys = await gpg.listKeys();
+  const keyGridId = keys.find(key => key.email === "john.doe@mailinator.com");
+  const privateKey = await gpg.exportPrivateKeyAsBase64(keyGridId); // this will be encrypted, if there's a passphrase
+})();
+```
+
 ## Import Key from File
 
 ```js
