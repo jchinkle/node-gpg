@@ -18,7 +18,8 @@
     "watch:tsc": "tsc --watch -p ./tsconfig.json",
     "build:tsc": "tsc -p ./tsconfig.json",
     "lint:check": "eslint . --ext=ts",
-    "script": "ts-node -r tsconfig-paths/register --files --"
+    "script": "ts-node -r tsconfig-paths/register --files --",
+    "prepublish": "npm run build:tsc"
   },
   "keywords": [
     "gpg",
