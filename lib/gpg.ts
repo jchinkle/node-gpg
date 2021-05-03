@@ -10,7 +10,7 @@
 import fs from "fs";
 import { homedir } from "os";
 import path from "path";
-import { Stream } from "node:stream";
+import { Stream } from "stream";
 import { IStreamingOptions, spawnGPG, streaming } from "./spawnGPG";
 const keyRegex = /^gpg: key (.*?):/;
 // eslint-disable-next-line no-control-regex

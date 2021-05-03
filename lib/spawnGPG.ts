@@ -1,7 +1,6 @@
-import { spawn } from "child_process";
+import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import fs, { WriteStream, ReadStream } from "fs";
-import { ChildProcessWithoutNullStreams } from "node:child_process";
-import { Stream } from "node:stream";
+import { Stream } from "stream";
 
 const globalArgs = ["--batch"];
 const readStream = fs.createReadStream;
