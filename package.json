@@ -13,7 +13,7 @@
   },
   "scripts": {
     "pretest": "eslint .",
-    "test": "mocha test/*.test.js --require @babel/register",
+    "test": "mocha test/*.test.js --require @babel/register --require ts-node/register",
     "test:watch": "npm test -- -w",
     "watch:tsc": "tsc --watch -p ./tsconfig.json",
     "build:tsc": "tsc -p ./tsconfig.json",

@@ -1,4 +1,4 @@
-import { GpgService } from "../dist";
+import { GpgService } from "../lib";
 import path from "path";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";

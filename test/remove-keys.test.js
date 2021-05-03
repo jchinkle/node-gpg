@@ -1,4 +1,4 @@
-import { GpgService } from "../dist";
+import { GpgService } from "../lib";
 import fs from "fs";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -14,7 +14,7 @@ describe("remove keys", () => {
       spawnGPG,
     });
     return gpg.removeKey("6F20F59D").then((command) => {
-      expect(command).to.equal('gpg --batch --logger-fd 1 --delete-secret-and-public-key "6F20F59D"');
+      expect(command).to.equal('gpg --batch --no-tty --yes --logger-fd 1 --delete-secret-and-public-key 6F20F59D ""');
     });
   });
 });
