@@ -15,16 +15,12 @@ describe("encrypt", function () {
     });
     return gpg
       .encrypt("Hello World", [
-        "--default-key",
-        "6F20F59D",
-        "--recipient",
-        "6F20F59D",
-        "--armor",
-        "--trust-model",
-        "always", // so we don't get "no assurance this key belongs to the given user"
+        "6F20F59D"
       ])
       .then((command) => {
-        expect(command).to.equal('gpg --batch --default-key 6F20F59D --recipient 6F20F59D --armor --trust-model always --encrypt "Hello World"');
+        expect(command).to.equal(
+          'gpg --batch -r 6F20F59D -a --trust-model always --encrypt "Hello World"'
+        );
       });
   });
 
@@ -35,17 +31,10 @@ describe("encrypt", function () {
 
     var inStream = fs.createReadStream("./test/hello.txt");
 
-    return gpg.encryptStream(inStream, [
-      "--default-key",
-      "6F20F59D",
-      "--recipient",
-      "6F20F59D",
-      "--armor",
-      "--trust-model",
-      "always", // so we don't get "no assurance this key belongs to the given user"
-    ])
-    .then(command => {
-      expect(command).to.equal('gpg --batch --default-key 6F20F59D --recipient 6F20F59D --armor --trust-model always --encrypt "Hello World"');
+    return gpg.encryptStream(inStream, ["6F20F59D"]).then((command) => {
+      expect(command).to.equal(
+        'gpg --batch -r 6F20F59D -a --trust-model always --encrypt "Hello World"'
+      );
     });
   });
 });

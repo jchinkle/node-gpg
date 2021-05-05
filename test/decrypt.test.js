@@ -14,12 +14,18 @@ describe("decrypt", function () {
   it("should decrypt strings", function () {
     const gpg = new GpgService({
       spawnGPG,
+      writer: {
+        writeFile: () => Promise.resolve(),
+        unlink: () => Promise.resolve(),
+      },
+      tempFolderPath: "./",
+      idFactoryFn: () => "test-uuid"
     });
     return gpg
-      .decrypt(encryptedString)
+      .decrypt(encryptedString, "test-passphrase")
       .then((command) =>
         expect(command).to.equal(
-          'gpg --batch --decrypt "TEST ENCRYPTED STRING"'
+          'gpg --batch --no-tty --logger-fd 1 --passphrase-fd 0 --pinentry-mode loopback --decrypt test-uuid.txt "test-passphrase"'
         )
       );
   });
@@ -27,20 +33,17 @@ describe("decrypt", function () {
   it("should decrypt stream with decryptStream()", function () {
     const gpg = new GpgService({
       spawnGPG,
+      writer: {
+        writeFile: () => Promise.resolve(),
+        unlink: Promise.resolve(),
+      },
+      tempFolderPath: "./",
+      idFactoryFn: () => "test-uuid"
     });
     var inStream = fs.createReadStream("./test/hello.gpg");
 
-    gpg
-      .decryptStream(inStream, [
-        "--default-key",
-        "6F20F59D",
-        "--recipient",
-        "6F20F59D",
-        "--trust-model",
-        "always", // so we don't get "no assurance this key belongs to the given user"
-      ])
-      .then((command) => {
-        expect(command).to.equal("");
-      });
+    gpg.decryptStream(inStream, "test-passphrase").then((command) => {
+      expect(command).to.equal("");
+    });
   });
 });
