@@ -83,7 +83,7 @@ export class GpgService {
         ) => Promise<void>;
         unlink: (filePath: string) => Promise<void>;
       };
-      idFactoryFn?: () => string
+      idFactoryFn?: () => string;
     }
   ) {}
 
@@ -108,6 +108,10 @@ export class GpgService {
     args: string[]
   ): Promise<fs.WriteStream> {
     return this.options.streaming(options, args, this.options.executable);
+  }
+
+  setTempFolderPath(tempFolderPath: string): void {
+    this.options.tempFolderPath = tempFolderPath;
   }
 
   /**
@@ -479,6 +483,6 @@ export const gpg = new GpgService({
     unlink: fs.promises.unlink,
   },
   tempFolderPath: "./",
-  idFactoryFn: uuid
+  idFactoryFn: uuid,
 });
 export default gpg;

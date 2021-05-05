@@ -217,3 +217,9 @@ import { GpgService, spawnGPG, streaming } from "@mykeels/gpg";
   ]);
 })();
 ```
+
+## Set Temp Directory for storing Encrypted Files for Decryption
+
+```js
+gpg.setTempFolderPath("./temp");
+```
