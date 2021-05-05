@@ -120,13 +120,8 @@ import { gpg } from "@mykeels/gpg";
 
 (async () => {
   await gpg.encrypt("Hello World", [
-    "--default-key",
-    "6F20F59D",
-    "--recipient",
-    "6F20F59D", // you can pass multiple recipients
-    "--armor",
-    "--trust-model",
-    "always",
+    "recipient1@example.com",
+    "recipient2@example.com",
   ]);
 })();
 ```
@@ -138,13 +133,8 @@ import { gpg } from "@mykeels/gpg";
 
 (async () => {
   await gpg.encryptFile("/path/to/file", [
-    "--default-key",
-    "6F20F59D",
-    "--recipient",
-    "6F20F59D", // you can pass multiple recipients
-    "--armor",
-    "--trust-model",
-    "always",
+    "recipient1@example.com",
+    "recipient2@example.com",
   ]);
 })();
 ```
@@ -155,7 +145,7 @@ import { gpg } from "@mykeels/gpg";
 import { gpg } from "@mykeels/gpg";
 
 (async () => {
-  await gpg.decrypt("SAMPLE-ENCRYPTED-STRING", ["./path/to/key.gpg"]);
+  await gpg.decrypt("SAMPLE-ENCRYPTED-STRING", "sample-passphrase");
 })();
 ```
 
@@ -165,7 +155,7 @@ import { gpg } from "@mykeels/gpg";
 import { gpg } from "@mykeels/gpg";
 
 (async () => {
-  await gpg.decryptFile("/path/to/encrypted/file", ["./path/to/key.gpg"]);
+  await gpg.decryptFile("/path/to/encrypted/file", "sample-passphrase");
 })();
 ```
 
