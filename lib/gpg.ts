@@ -10,6 +10,7 @@
 import fs from "fs";
 import { homedir } from "os";
 import path from "path";
+import { v4 as uuid } from "uuid";
 import { Stream } from "stream";
 import { IStreamingOptions, spawnGPG, streaming } from "./spawnGPG";
 const keyRegex = /^gpg: key (.*?):/;
@@ -70,10 +71,19 @@ export class GpgService {
       spawnGPG?: SpawnGpgFn;
       streaming?: StreamingFn;
       executable?: string;
+      tempFolderPath?: string;
       reader?: {
         readFile: (filePath: string) => Promise<Buffer>;
         readFileString: (filePath: string) => Promise<string>;
       };
+      writer?: {
+        writeFile: (
+          filePath: string,
+          content: string | Buffer
+        ) => Promise<void>;
+        unlink: (filePath: string) => Promise<void>;
+      };
+      idFactoryFn?: () => string
     }
   ) {}
 
@@ -116,10 +126,13 @@ export class GpgService {
    * @param {Function} [fn]   Callback containing the encrypted file contents.
    * @api public
    */
-  encryptFile(file: string): Promise<Buffer> {
+  encryptFile(
+    file: string,
+    recipientUsernames: string[] = []
+  ): Promise<Buffer> {
     return this.options.reader
       .readFile(file)
-      .then((content) => this.encrypt(content));
+      .then((content) => this.encrypt(content, recipientUsernames));
   }
 
   /**
@@ -128,8 +141,17 @@ export class GpgService {
    *
    * @api public
    */
-  encryptToStream(options: IStreamingOptions): Promise<fs.WriteStream> {
-    return this.callStreaming(options, ["--encrypt"]);
+  encryptToStream(
+    options: IStreamingOptions,
+    recipientUsernames: string[] = []
+  ): Promise<fs.WriteStream> {
+    return this.callStreaming(
+      options,
+      recipientUsernames
+        .map((username) => ["-r", username])
+        .reduce((arr, item) => arr.concat(item), [])
+        .concat(["-a", "--trust-model", "always", "--encrypt"])
+    );
   }
 
   /**
@@ -137,7 +159,10 @@ export class GpgService {
    *
    * @api public
    */
-  encryptStream(stream: Stream, args: string[]): Promise<Buffer> {
+  encryptStream(
+    stream: Stream,
+    recipientUsernames: string[] = []
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks = [];
 
@@ -146,7 +171,7 @@ export class GpgService {
       });
 
       stream.on("end", () => {
-        resolve(this.encrypt(Buffer.concat(chunks), args));
+        resolve(this.encrypt(Buffer.concat(chunks), recipientUsernames));
       });
 
       stream.on("error", reject);
@@ -158,8 +183,17 @@ export class GpgService {
    *
    * @api public
    */
-  encrypt(str: string | Buffer, args: string[] = []): Promise<Buffer> {
-    return this.call(str.toString(), args.concat(["--encrypt"]));
+  encrypt(
+    str: string | Buffer,
+    recipientUsernames: string[] = []
+  ): Promise<Buffer> {
+    return this.call(
+      str.toString(),
+      recipientUsernames
+        .map((username) => ["-r", username])
+        .reduce((arr, item) => arr.concat(item), [])
+        .concat(["-a", "--trust-model", "always", "--encrypt"])
+    );
   }
 
   /**
@@ -167,8 +201,18 @@ export class GpgService {
    *
    * @api public
    */
-  decrypt(str: string | Buffer, args: string[] = []): Promise<Buffer> {
-    return this.call(str.toString(), args.concat(["--decrypt"]));
+  decrypt(str: string | Buffer, passphrase: string): Promise<Buffer> {
+    const messageFilePath = path.join(
+      this.options.tempFolderPath,
+      `${this.options.idFactoryFn()}.txt`
+    );
+    return this.options.writer
+      .writeFile(messageFilePath, str)
+      .then(() => this.decryptFile(messageFilePath, passphrase))
+      .finally(() => {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        this.options.writer.unlink(messageFilePath).then(() => {});
+      });
   }
 
   /**
@@ -176,10 +220,18 @@ export class GpgService {
    *
    * @api public
    */
-  decryptFile(file: string): Promise<Buffer> {
-    return this.options.reader
-      .readFile(file)
-      .then((content) => this.decrypt(content));
+  decryptFile(file: string, passphrase: string): Promise<Buffer> {
+    return this.call(passphrase, [
+      "--no-tty",
+      "--logger-fd",
+      "1",
+      "--passphrase-fd",
+      "0",
+      "--pinentry-mode",
+      "loopback",
+      "--decrypt",
+      file,
+    ]);
   }
 
   /**
@@ -196,7 +248,7 @@ export class GpgService {
    *
    * @api public
    */
-  decryptStream(stream: Stream, args: string[]): Promise<Buffer> {
+  decryptStream(stream: Stream, passphrase: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const chunks = [];
 
@@ -205,7 +257,7 @@ export class GpgService {
       });
 
       stream.on("end", () => {
-        resolve(this.decrypt(Buffer.concat(chunks), args));
+        resolve(this.decrypt(Buffer.concat(chunks), passphrase));
       });
 
       stream.on("error", reject);
@@ -419,5 +471,14 @@ export const gpg = new GpgService({
     readFile: fs.promises.readFile,
     readFileString: (filePath) => fs.promises.readFile(filePath, "utf8"),
   },
+  writer: {
+    writeFile: (filePath, content) =>
+      fs.promises.writeFile(filePath, content, {
+        encoding: "utf8",
+      }),
+    unlink: fs.promises.unlink,
+  },
+  tempFolderPath: "./",
+  idFactoryFn: uuid
 });
 export default gpg;
