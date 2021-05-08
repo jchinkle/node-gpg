@@ -17,15 +17,10 @@ const keyRegex = /^gpg: key (.*?):/;
 // eslint-disable-next-line no-control-regex
 const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/gi;
 
-type SpawnGpgFn = (
-  input: string,
-  args: string[],
-  executable: string
-) => Promise<void | Buffer>;
+type SpawnGpgFn = (input: string, args: string[]) => Promise<void | Buffer>;
 type StreamingFn = (
   options: IStreamingOptions,
-  args: string[],
-  executable: string
+  args: string[]
 ) => Promise<fs.WriteStream>;
 interface IGpgKey {
   created_at: string | Date;
@@ -65,12 +60,15 @@ const parseKeysFromOutput = (output: string): IGpgKey[] => {
   }, []);
 };
 
+export const GPG_UNIX_BASE_DIR = `${homedir()}/.gnupg`;
+export const GPG_WINDOWS_BASE_DIR = `${homedir()}\\AppData\\Roaming\\gnupg`;
+
 export class GpgService {
   constructor(
     private options: {
       spawnGPG?: SpawnGpgFn;
       streaming?: StreamingFn;
-      executable?: string;
+      basedir?: string;
       tempFolderPath?: string;
       reader?: {
         readFile: (filePath: string) => Promise<Buffer>;
@@ -91,11 +89,7 @@ export class GpgService {
    * Raw call to gpg.
    */
   call(input: string, args: string[]): Promise<Buffer> {
-    return this.options.spawnGPG(
-      input,
-      args,
-      this.options.executable
-    ) as Promise<Buffer>;
+    return this.options.spawnGPG(input, args) as Promise<Buffer>;
   }
 
   /**
@@ -107,11 +101,17 @@ export class GpgService {
     options: IStreamingOptions,
     args: string[]
   ): Promise<fs.WriteStream> {
-    return this.options.streaming(options, args, this.options.executable);
+    return this.options.streaming(options, args);
   }
 
-  setTempFolderPath(tempFolderPath: string): void {
+  setTempFolderPath(tempFolderPath: string): GpgService {
     this.options.tempFolderPath = tempFolderPath;
+    return this;
+  }
+
+  setBaseDir(basedir: string): GpgService {
+    this.options.basedir = basedir;
+    return this;
   }
 
   /**
@@ -407,9 +407,17 @@ export class GpgService {
    * @api public
    */
   exportPrivateKey(keygrip: string): Promise<Buffer> {
-    return this.options.reader.readFile(
-      path.join(homedir(), `/.gnupg/private-keys-v1.d/${keygrip}.key`)
-    );
+    return this.options.reader
+      .readFile(
+        path.join(this.options.basedir, `/private-keys-v1.d/${keygrip}.key`)
+      )
+      .catch((err) =>
+        Promise.reject(
+          err.code === "ENOENT"
+            ? new Error(`No key exists with keygrip ${keygrip}`)
+            : err
+        )
+      );
   }
 
   /**
@@ -484,5 +492,6 @@ export const gpg = new GpgService({
   },
   tempFolderPath: "./",
   idFactoryFn: uuid,
+  basedir: GPG_UNIX_BASE_DIR,
 });
 export default gpg;
