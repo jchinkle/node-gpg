@@ -197,24 +197,18 @@ import { gpg } from "@mykeels/gpg";
 })();
 ```
 
-## Use a different executable besides "gpg"
+## Change GPG Base Directory
+
+Unix uses `~/.gnupg`
+Windows uses `C:\Users\[User]\AppData\Roaming\gnupg`
 
 ```js
-import { GpgService, spawnGPG, streaming } from "@mykeels/gpg";
+import { gpg, GPG_WINDOWS_BASE_DIR } from "@mykeels/gpg";
+
+// gpg uses unix base directory by default
 
 (async () => {
-  const gpg = new GpgService({
-    spawnGPG,
-    streaming,
-    executable: "custom-gpg",
-  });
-  await gpg.call("<input>", [
-    "--skip-verify",
-    "--passphrase-fd",
-    "0",
-    "--decrypt",
-    "./path/to/key.gpg",
-  ]);
+  gpg.setBaseDir(GPG_WINDOWS_BASE_DIR);
 })();
 ```
 
