@@ -229,6 +229,7 @@ export class GpgService {
       "--no-tty",
       "--logger-fd",
       "1",
+      "--quiet",
       "--passphrase-fd",
       "0",
       "--pinentry-mode",
