@@ -25,7 +25,7 @@ describe("decrypt", function () {
       .decrypt(encryptedString, "test-passphrase")
       .then((command) =>
         expect(command).to.equal(
-          'gpg --batch --no-tty --logger-fd 1 --passphrase-fd 0 --pinentry-mode loopback --decrypt test-uuid.txt "test-passphrase"'
+          'gpg --batch --no-tty --logger-fd 1 --quiet --passphrase-fd 0 --pinentry-mode loopback --decrypt test-uuid.txt "test-passphrase"'
         )
       );
   });
