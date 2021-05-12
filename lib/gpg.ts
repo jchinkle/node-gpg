@@ -466,11 +466,7 @@ export class GpgService {
    */
   getKey(idOrUsername: string): Promise<IGpgKey> {
     return this.listKeys([idOrUsername])
-      .then((keys) => keys[0])
-      .catch((error) => {
-        console.error(error);
-        return null;
-      });
+      .then((keys) => keys[0]);
   }
 
   /**
