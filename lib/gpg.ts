@@ -89,7 +89,11 @@ export class GpgService {
    * Raw call to gpg.
    */
   call(input: string, args: string[]): Promise<Buffer> {
-    return this.options.spawnGPG(input, args) as Promise<Buffer>;
+    return this.options.spawnGPG(input, [
+      "--homedir",
+      this.options.basedir,
+      ...args,
+    ]) as Promise<Buffer>;
   }
 
   /**
@@ -101,7 +105,11 @@ export class GpgService {
     options: IStreamingOptions,
     args: string[]
   ): Promise<fs.WriteStream> {
-    return this.options.streaming(options, args);
+    return this.options.streaming(options, [
+      "--homedir",
+      this.options.basedir,
+      ...args,
+    ]);
   }
 
   setTempFolderPath(tempFolderPath: string): GpgService {
