@@ -72,6 +72,11 @@ export class GpgService {
     return this;
   }
 
+  setQuiet(quiet: boolean): GpgService {
+    this.options.quiet = quiet;
+    return this;
+  }
+
   /**
    * Encrypt source file passed as `options.source` and store it in a file specified in `options.dest`.
    *
@@ -187,7 +192,7 @@ export class GpgService {
       "--no-tty",
       "--logger-fd",
       "1",
-      "--quiet",
+      ...(this.options.quiet ? [] : ["--quiet"]),
       "--passphrase-fd",
       "0",
       "--pinentry-mode",
@@ -448,5 +453,6 @@ export const gpg = new GpgService({
   idFactoryFn: uuid,
   basedir: GPG_UNIX_BASE_DIR,
   useSudo: false,
+  quiet: true,
 });
 export default gpg;

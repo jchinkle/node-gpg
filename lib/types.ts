@@ -40,4 +40,5 @@ export interface IGpgOptions {
   };
   idFactoryFn?: () => string;
   useSudo?: boolean;
+  quiet?: boolean;
 }

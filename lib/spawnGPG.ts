@@ -1,17 +1,17 @@
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import fs, { WriteStream } from "fs";
-import { IStreamingOptions } from "./types";
+import { IGpgOptions, IStreamingOptions } from "./types";
 
-const globalArgs = ["--batch"];
 const readStream = fs.createReadStream;
 const writeStream = fs.createWriteStream;
 
 // Wrapper around spawn. Catches error events and passed global args.
 const spawnIt = async (
   args: string[],
-  gpgOptions?: { useSudo: boolean }
+  gpgOptions?: IGpgOptions
 ): Promise<ChildProcessWithoutNullStreams> => {
   return new Promise((resolve, reject) => {
+    const globalArgs = ["--batch", ...(gpgOptions.quiet ? ["--quiet"] : [])];
     const gpg = gpgOptions?.useSudo
       ? spawn("sudo", ["gpg"].concat(globalArgs.concat(args || [])))
       : spawn("gpg", globalArgs.concat(args || []));
@@ -35,7 +35,7 @@ const isStream = (stream) => {
 export const spawnGPG = async (
   input: string,
   args: string[],
-  gpgOptions?: { useSudo: boolean }
+  gpgOptions?: IGpgOptions
 ): Promise<void | Buffer> => {
   const buffers = [];
   let buffersLength = 0;
@@ -79,7 +79,7 @@ export const spawnGPG = async (
 export const streaming = async (
   options: IStreamingOptions,
   args: string[],
-  gpgOptions?: { useSudo: boolean }
+  gpgOptions?: IGpgOptions
 ): Promise<WriteStream> => {
   return new Promise((resolve, reject) => {
     options = options || {};
