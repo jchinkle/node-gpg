@@ -22,19 +22,20 @@ export const GPG_UNIX_BASE_DIR = `${homedir()}/.gnupg`;
 export const GPG_WINDOWS_BASE_DIR = `${homedir()}\\AppData\\Roaming\\gnupg`;
 
 export class GpgService {
-  constructor(
-    private options: IGpgOptions
-  ) {}
+  constructor(private options: IGpgOptions) {}
 
   /**
    * Raw call to gpg.
    */
   call(input: string, args: string[]): Promise<Buffer> {
-    return this.options.spawnGPG(input, [
-      "--homedir",
-      this.options.basedir,
-      ...args,
-    ], this.options) as Promise<Buffer>;
+    return this.options.spawnGPG(
+      input,
+      [
+        ...(this.options.basedir ? ["--homedir", this.options.basedir] : []),
+        ...args,
+      ],
+      this.options
+    ) as Promise<Buffer>;
   }
 
   /**
@@ -46,11 +47,14 @@ export class GpgService {
     options: IStreamingOptions,
     args: string[]
   ): Promise<fs.WriteStream> {
-    return this.options.streaming(options, [
-      "--homedir",
-      this.options.basedir,
-      ...args,
-    ], this.options);
+    return this.options.streaming(
+      options,
+      [
+        ...(this.options.basedir ? ["--homedir", this.options.basedir] : []),
+        ...args,
+      ],
+      this.options
+    );
   }
 
   setTempFolderPath(tempFolderPath: string): GpgService {
@@ -411,8 +415,7 @@ export class GpgService {
    * @api public
    */
   getKey(idOrUsername: string): Promise<IGpgKey> {
-    return this.listKeys([idOrUsername])
-      .then((keys) => keys[0]);
+    return this.listKeys([idOrUsername]).then((keys) => keys[0]);
   }
 
   /**
@@ -444,6 +447,6 @@ export const gpg = new GpgService({
   tempFolderPath: "./",
   idFactoryFn: uuid,
   basedir: GPG_UNIX_BASE_DIR,
-  useSudo: false
+  useSudo: false,
 });
 export default gpg;
