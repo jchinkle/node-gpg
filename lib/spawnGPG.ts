@@ -1,6 +1,6 @@
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
-import fs, { WriteStream, ReadStream } from "fs";
-import { Stream } from "stream";
+import fs, { WriteStream } from "fs";
+import { IStreamingOptions } from "./types";
 
 const globalArgs = ["--batch"];
 const readStream = fs.createReadStream;
@@ -8,10 +8,13 @@ const writeStream = fs.createWriteStream;
 
 // Wrapper around spawn. Catches error events and passed global args.
 const spawnIt = async (
-  args: string[]
+  args: string[],
+  gpgOptions?: { useSudo: boolean }
 ): Promise<ChildProcessWithoutNullStreams> => {
   return new Promise((resolve, reject) => {
-    const gpg = spawn("gpg", globalArgs.concat(args || []));
+    const gpg = gpgOptions?.useSudo
+      ? spawn("sudo", ["gpg"].concat(globalArgs.concat(args || [])))
+      : spawn("gpg", globalArgs.concat(args || []));
     gpg.on("error", reject);
     resolve(gpg);
   });
@@ -26,22 +29,18 @@ const isStream = (stream) => {
   );
 };
 
-export interface IStreamingOptions {
-  source?: string | Stream | ReadStream;
-  dest?: string | Stream | WriteStream;
-}
-
 /**
  * Wrapper around spawning GPG. Handles stdout, stderr, and default args.
  */
 export const spawnGPG = async (
   input: string,
-  args: string[]
+  args: string[],
+  gpgOptions?: { useSudo: boolean }
 ): Promise<void | Buffer> => {
   const buffers = [];
   let buffersLength = 0;
   let error = "";
-  return spawnIt(args).then((gpg) => {
+  return spawnIt(args, gpgOptions).then((gpg) => {
     return new Promise((resolve, reject) => {
       gpg.stdout.on("data", function (buf: Buffer) {
         buffers.push(buf);
@@ -79,7 +78,8 @@ export const spawnGPG = async (
  */
 export const streaming = async (
   options: IStreamingOptions,
-  args: string[]
+  args: string[],
+  gpgOptions?: { useSudo: boolean }
 ): Promise<WriteStream> => {
   return new Promise((resolve, reject) => {
     options = options || {};
@@ -121,7 +121,7 @@ export const streaming = async (
     }
 
     // Go for it
-    spawnIt(args).then((gpg) => {
+    spawnIt(args, gpgOptions).then((gpg) => {
       if (!isDestStream) {
         gpg.on("close", function () {
           resolve(null);
