@@ -39,7 +39,8 @@ export const spawnGPG = async (
 ): Promise<void | Buffer> => {
   const buffers = [];
   let buffersLength = 0;
-  let error = "";
+  let errors = "";
+  let warnings = "";
   return spawnIt(args, gpgOptions).then((gpg) => {
     return new Promise((resolve, reject) => {
       gpg.stdout.on("data", function (buf: Buffer) {
@@ -48,19 +49,28 @@ export const spawnGPG = async (
       });
 
       gpg.stderr.on("data", function (buf: Buffer) {
-        error += buf.toString("utf8");
+        const message = buf.toString("utf8");
+        if (message.includes("gpg: WARNING")) {
+          warnings += message;
+        } else {
+          errors += message;
+        }
       });
 
       gpg.on("close", function (code) {
         const message = Buffer.concat(buffers, buffersLength);
         if (code !== 0) {
           // If error is empty, we probably redirected stderr to stdout (for verifySignature, import, etc)
-          reject(error || message.toString("utf8"));
+          reject(errors || message.toString("utf8"));
         }
 
-        if (error !== "") {
+        if (warnings !== "") {
+          console.warn(warnings);
+        }
+
+        if (errors !== "") {
           reject({
-            error,
+            error: errors,
             message: message.toString("utf8"),
           });
         } else {
