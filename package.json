@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ScalableOrg/node-gpg.git"
+    "url": "git://github.com/abel-protocol/node-gpg.git"
   },
   "scripts": {
     "pretest": "eslint .",
@@ -71,9 +71,9 @@
     "*.js": "eslint --cache --fix"
   },
   "bugs": {
-    "url": "https://github.com/ScalableOrg/node-gpg/issues"
+    "url": "https://github.com/abel-protocol/node-gpg/issues"
   },
-  "homepage": "https://github.com/ScalableOrg/node-gpg#readme",
+  "homepage": "https://github.com/abel-protocol/node-gpg#readme",
   "directories": {
     "example": "examples",
     "test": "test"
