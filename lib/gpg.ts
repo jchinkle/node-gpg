@@ -192,7 +192,7 @@ export class GpgService {
    *
    * @api public
    */
-  decryptFile(file: string, passphrase: string): Promise<Buffer> {
+  decryptFile(file: string, passphrase: string, options: string[] = []): Promise<Buffer> {
     return this.call(passphrase, [
       "--no-tty",
       "--logger-fd",
@@ -203,6 +203,7 @@ export class GpgService {
       "--pinentry-mode",
       "loopback",
       "--decrypt",
+      ...options,
       file,
     ]);
   }
