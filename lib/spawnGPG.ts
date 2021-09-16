@@ -13,8 +13,8 @@ const spawnIt = async (
   return new Promise((resolve, reject) => {
     const globalArgs = ["--batch", ...(gpgOptions.quiet ? ["--quiet"] : [])];
     const gpg = gpgOptions?.useSudo
-      ? spawn("sudo", ["gpg"].concat(globalArgs.concat(args || [])))
-      : spawn("gpg", globalArgs.concat(args || []));
+      ? spawn("sudo", [(gpgOptions?.executablePath ? gpgOptions?.executablePath : 'gpg')].concat(globalArgs.concat(args || [])))
+      : spawn((gpgOptions?.executablePath ? gpgOptions?.executablePath : 'gpg'), globalArgs.concat(args || []));
     gpg.on("error", reject);
     resolve(gpg);
   });

@@ -11,6 +11,7 @@ export type SpawnGpgFn = (
   args: string[],
   gpgOptions?: Partial<IGpgOptions>
 ) => Promise<void | Buffer>;
+
 export type StreamingFn = (
   options: IStreamingOptions,
   args: string[],
@@ -26,6 +27,7 @@ export interface IGpgKey {
 }
 
 export interface IGpgOptions {
+  executablePath?: string;
   spawnGPG?: SpawnGpgFn;
   streaming?: StreamingFn;
   basedir?: string;
