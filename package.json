@@ -1,15 +1,15 @@
 {
-  "author": "Nicholas Penree <drudge@conceited.net> (http://penr.ee)",
-  "name": "@mykeels/gpg",
+  "author": "Jeremy Hinkle",
+  "name": "@jchinkle/gpg",
   "description": "GPG encryption and decryption in node.js by way of the gpg command-line tool",
-  "version": "0.7.18",
+  "version": "0.7.19",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/abel-protocol/node-gpg.git"
+    "url": "git://github.com/jchinkle/node-gpg.git"
   },
   "scripts": {
     "pretest": "eslint .",
@@ -71,9 +71,9 @@
     "*.js": "eslint --cache --fix"
   },
   "bugs": {
-    "url": "https://github.com/abel-protocol/node-gpg/issues"
+    "url": "https://github.com/jchinkle/node-gpg/issues"
   },
-  "homepage": "https://github.com/abel-protocol/node-gpg#readme",
+  "homepage": "https://github.com/jchinkle/node-gpg#readme",
   "directories": {
     "example": "examples",
     "test": "test"
