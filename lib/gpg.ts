@@ -57,6 +57,11 @@ export class GpgService {
     );
   }
 
+  setExecutablePath(executablePath: string): GpgService {
+    this.options.executablePath = executablePath;
+    return this;
+  }
+
   setTempFolderPath(tempFolderPath: string): GpgService {
     this.options.tempFolderPath = tempFolderPath;
     return this;
