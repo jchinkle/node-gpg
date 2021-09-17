@@ -123,7 +123,7 @@ export class GpgService {
       recipientUsernames
         .map((username) => ["-r", username])
         .reduce((arr, item) => arr.concat(item), [])
-        .concat(["--trust-model", "always", "--encrypt"])
+        .concat(["--encrypt"])
     );
   }
 
