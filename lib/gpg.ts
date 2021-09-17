@@ -100,11 +100,12 @@ export class GpgService {
    */
   encryptFile(
     file: string,
-    recipientUsernames: string[] = []
+    recipientUsernames: string[] = [],
+    options: string[] = []
   ): Promise<Buffer> {
     return this.options.reader
       .readFile(file)
-      .then((content) => this.encrypt(content, recipientUsernames));
+      .then((content) => this.encrypt(content, recipientUsernames, options));
   }
 
   /**
@@ -157,14 +158,15 @@ export class GpgService {
    */
   encrypt(
     str: string | Buffer,
-    recipientUsernames: string[] = []
+    recipientUsernames: string[] = [],
+    options: string[] = []
   ): Promise<Buffer> {
     return this.call(
       str.toString(),
       recipientUsernames
         .map((username) => ["-r", username])
         .reduce((arr, item) => arr.concat(item), [])
-        .concat(["-a", "--trust-model", "always", "--encrypt"])
+        .concat(["-a", "--trust-model", "always", "--encrypt", ...options])
     );
   }
 
