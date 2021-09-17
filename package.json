@@ -2,7 +2,7 @@
   "author": "Jeremy Hinkle",
   "name": "@jhinkle/gpg",
   "description": "GPG encryption and decryption in node.js by way of the gpg command-line tool",
-  "version": "0.7.25",
+  "version": "0.7.26",
   "private": false,
   "publishConfig": {
     "access": "public"
